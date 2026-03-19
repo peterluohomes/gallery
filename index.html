@@ -567,8 +567,8 @@
 // ─────────────────────────────────────────────────────────
 //  CONFIGURATION
 // ─────────────────────────────────────────────────────────
-const GALLERY_ROOT = './gallery/';
-const MANIFEST_URL = './gallery/gallery.json';
+const GALLERY_ROOT = './';
+const MANIFEST_URL = './gallery.json';
 
 const IMG_EXTS   = ['jpg','jpeg','png','webp','gif','avif','heic'];
 const VIDEO_EXTS = ['mp4','mov','webm','m4v','ogg'];
@@ -582,12 +582,15 @@ let currentFolder  = '';
 // ─────────────────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────────────────
+let allProperties = [];
+
 async function init() {
   try {
     const res  = await fetch(MANIFEST_URL);
     if (!res.ok) throw new Error('manifest not found');
     const data = await res.json();
-    buildSidebar(data.properties || []);
+    allProperties = data.properties || [];
+    buildSidebar(allProperties);
   } catch(e) {
     document.getElementById('property-list').innerHTML =
       '<li style="padding:16px 24px;font-size:12px;color:rgba(255,255,255,0.3);">Could not load gallery/gallery.json</li>';
@@ -603,7 +606,7 @@ function buildSidebar(properties) {
     list.innerHTML = '<li style="padding:16px 24px;font-size:12px;color:rgba(255,255,255,0.3);">No properties listed.</li>';
     return;
   }
-  list.innerHTML = properties.map((p, i) => `
+  const propItems = properties.map((p, i) => `
     <li class="property-item">
       <button class="property-btn" id="prop-btn-${i}" onclick="loadProperty('${p.folder}', '${escHtml(p.name)}', ${i})">
         <div class="prop-icon">🏠</div>
@@ -614,10 +617,24 @@ function buildSidebar(properties) {
       </button>
     </li>
   `).join('');
+
+  // Videos button at the bottom as a separate section
+  const videoItem = `
+    <li class="property-item" style="margin-top:16px;border-top:1px solid rgba(201,168,76,0.15);padding-top:8px;">
+      <button class="property-btn" id="prop-btn-videos" onclick="loadVideos()">
+        <div class="prop-icon">🎬</div>
+        <div class="prop-info">
+          <span class="prop-name">Videos</span>
+          <span class="prop-count" id="prop-count-videos">—</span>
+        </div>
+      </button>
+    </li>`;
+
+  list.innerHTML = propItems + videoItem;
 }
 
 // ─────────────────────────────────────────────────────────
-//  LOAD PROPERTY — fetch photos + videos indexes
+//  LOAD PROPERTY — photos only
 // ─────────────────────────────────────────────────────────
 async function loadProperty(folder, name, btnIdx) {
   document.querySelectorAll('.property-btn').forEach(b => b.classList.remove('active'));
@@ -627,40 +644,70 @@ async function loadProperty(folder, name, btnIdx) {
   const main = document.getElementById('main-content');
   main.innerHTML = '<div class="state-msg"><div class="spinner"></div><p>Loading media…</p></div>';
 
-  // Fetch photos and videos concurrently; videos are optional
-  const [photosResult, videosResult] = await Promise.allSettled([
-    fetch(GALLERY_ROOT + folder + '/photos_index.json').then(r => r.ok ? r.json() : Promise.reject()),
-    fetch(GALLERY_ROOT + folder + '/videos/videos_index.json').then(r => r.ok ? r.json() : Promise.reject())
-  ]);
+  // Fetch photos index
+  const photosResult = await fetch(GALLERY_ROOT + folder + '/photos_index.json')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .catch(() => null);
 
-  const photos = photosResult.status === 'fulfilled'
-    ? (photosResult.value.photos || []).filter(f => IMG_EXTS.includes(f.split('.').pop().toLowerCase()))
+  const photos = photosResult
+    ? (photosResult.photos || []).filter(f => IMG_EXTS.includes(f.split('.').pop().toLowerCase()))
     : [];
 
-  const videos = videosResult.status === 'fulfilled'
-    ? (videosResult.value.videos || []).filter(f => VIDEO_EXTS.includes(f.split('.').pop().toLowerCase()))
-    : [];
-
-  if (!photos.length && !videos.length) {
+  if (!photos.length) {
     main.innerHTML = `
       <div class="state-msg">
         <div class="icon">📂</div>
-        <p>No media found for <strong>${escHtml(name)}</strong>.<br>
-        Add <code>photos_index.json</code> and/or <code>videos/videos_index.json</code> to this folder.</p>
+        <p>No photos found for <strong>${escHtml(name)}</strong>.<br>
+        Add <code>photos_index.json</code> to the <code>${escHtml(folder)}</code> folder.</p>
       </div>`;
-    document.getElementById('prop-count-' + btnIdx).textContent = 'no media';
+    document.getElementById('prop-count-' + btnIdx).textContent = 'no photos';
     return;
   }
 
-  const totalCount = photos.length + videos.length;
   document.getElementById('prop-count-' + btnIdx).textContent =
-    photos.length + ' photo' + (photos.length !== 1 ? 's' : '') +
-    (videos.length ? ' · ' + videos.length + ' video' + (videos.length !== 1 ? 's' : '') : '');
+    photos.length + ' photo' + (photos.length !== 1 ? 's' : '');
 
   currentPhotos = photos.map(f => GALLERY_ROOT + folder + '/' + f);
-  currentVideos = videos.map(f => GALLERY_ROOT + folder + '/videos/' + f);
+  currentVideos = [];
 
-  renderGallery(name, folder, photos, videos);
+  renderGallery(name, folder, photos, []);
+}
+
+// ─────────────────────────────────────────────────────────
+//  LOAD VIDEOS — standalone section
+// ─────────────────────────────────────────────────────────
+async function loadVideos() {
+  document.querySelectorAll('.property-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('prop-btn-videos').classList.add('active');
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = '<div class="state-msg"><div class="spinner"></div><p>Loading videos…</p></div>';
+
+  const result = await fetch(GALLERY_ROOT + 'videos/videos_index.json')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .catch(() => null);
+
+  const videos = result
+    ? (result.videos || []).filter(f => VIDEO_EXTS.includes(f.split('.').pop().toLowerCase()))
+    : [];
+
+  if (!videos.length) {
+    main.innerHTML = `
+      <div class="state-msg">
+        <div class="icon">🎬</div>
+        <p>No videos found.<br>Add <code>videos_index.json</code> to the <code>gallery/videos/</code> folder.</p>
+      </div>`;
+    document.getElementById('prop-count-videos').textContent = 'no videos';
+    return;
+  }
+
+  document.getElementById('prop-count-videos').textContent =
+    videos.length + ' video' + (videos.length !== 1 ? 's' : '');
+
+  currentPhotos = [];
+  currentVideos = videos.map(f => GALLERY_ROOT + 'videos/' + f);
+
+  renderGallery('Videos', 'videos', [], videos);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -705,7 +752,7 @@ function renderGallery(name, folder, photos, videos) {
   // ── Videos section
   if (videos.length) {
     const videoItems = videos.map((f, i) => {
-      const src   = GALLERY_ROOT + folder + '/videos/' + f;
+      const src   = GALLERY_ROOT + 'videos/' + f;
       const label = f.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
       const ext   = f.split('.').pop().toUpperCase();
       return `
