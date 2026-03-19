@@ -3,12 +3,12 @@
     { "name": "Property A",  "folder": "PropertyA" },
     { "name": "Property B",  "folder": "PropertyB" },
     { "name": "Property C",  "folder": "PropertyC" },
-    { "name": "Property C",  "folder": "PropertyD" },
-    { "name": "Property C",  "folder": "PropertyE" },
-    { "name": "Property C",  "folder": "PropertyF" },
-    { "name": "Property C",  "folder": "PropertyG" },
-    { "name": "Property C",  "folder": "PropertyH" },
-    { "name": "Property C",  "folder": "PropertyI" },
-    { "name": "Property C",  "folder": "PropertyJ" }
+    { "name": "Property D",  "folder": "PropertyD" },
+    { "name": "Property E",  "folder": "PropertyE" },
+    { "name": "Property F",  "folder": "PropertyF" },
+    { "name": "Property G",  "folder": "PropertyG" },
+    { "name": "Property H",  "folder": "PropertyH" },
+    { "name": "Property I",  "folder": "PropertyI" },
+    { "name": "Property J",  "folder": "PropertyJ" }
   ]
 }
