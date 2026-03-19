@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Gallery — Peter Luo | Pinnacle Listing System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1f3c;
+    --navy-mid: #152b52;
+    --navy-light: #1e3a6e;
+    --gold: #c9a84c;
+    --gold-light: #e0c070;
+    --cream: #fdf8f0;
+    --cream-dark: #f0e8d5;
+    --border: #ddd3bc;
+    --text: #1a1a2e;
+    --muted: #888;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--cream);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: var(--navy);
+    border-bottom: 2px solid rgba(201,168,76,0.3);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .brand { display: flex; flex-direction: column; gap: 2px; }
+
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+  }
+
+  .brand-sub {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .back-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 8px 18px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: var(--gold); color: var(--navy); }
+
+  /* ── MAIN LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--navy-mid);
+    border-right: 1px solid rgba(201,168,76,0.15);
+    padding: 32px 0;
+    overflow-y: auto;
+    position: sticky;
+    top: 65px;
+    height: calc(100vh - 65px);
+  }
+
+  .sidebar-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    padding: 0 24px 16px;
+  }
+
+  .property-list { list-style: none; }
+  .property-item { border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+  .property-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 14px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.15s;
+    color: rgba(255,255,255,0.55);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    position: relative;
+  }
+  .property-btn:hover { background: rgba(201,168,76,0.06); color: rgba(255,255,255,0.9); }
+  .property-btn.active { background: rgba(201,168,76,0.1); color: var(--gold); font-weight: 600; }
+  .property-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--gold);
+  }
+
+  .prop-icon {
+    width: 32px; height: 32px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .property-btn.active .prop-icon { background: rgba(201,168,76,0.2); border-color: rgba(201,168,76,0.5); }
+
+  .prop-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .prop-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prop-count { font-size: 11px; color: rgba(255,255,255,0.3); font-weight: 400; }
+  .property-btn.active .prop-count { color: rgba(201,168,76,0.6); }
+
+  /* ── MAIN CONTENT ── */
+  .main { padding: 40px; min-height: calc(100vh - 65px); }
+
+  /* ── WELCOME STATE ── */
+  .welcome {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 60vh; text-align: center; gap: 16px;
+  }
+  .welcome-icon { font-size: 48px; opacity: 0.3; }
+  .welcome h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; color: rgba(255,255,255,0.3); }
+  .welcome p { font-size: 14px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
+
+  /* ── GALLERY HEADER ── */
+  .gallery-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .gallery-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; color: var(--cream); line-height: 1.1; }
+  .gallery-title em { font-style: italic; color: var(--gold); }
+  .gallery-meta { font-size: 12px; color: rgba(255,255,255,0.3); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
+
+  /* ── PHOTO GRID ── */
+  .photo-grid { columns: 3; column-gap: 12px; }
+  @media (max-width: 1200px) { .photo-grid { columns: 2; } }
+  @media (max-width: 700px)  { .photo-grid { columns: 1; } }
+
+  .photo-item {
+    break-inside: avoid;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    display: block;
+  }
+  .photo-item::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(13,31,60,0.0);
+    transition: background 0.2s;
+  }
+  .photo-item:hover::after { background: rgba(13,31,60,0.25); }
+  .photo-item img { width: 100%; display: block; transition: transform 0.4s ease; }
+  .photo-item:hover img { transform: scale(1.03); }
+
+  .photo-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(13,31,60,0.8));
+    padding: 20px 14px 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1;
+  }
+  .photo-item:hover .photo-overlay { opacity: 1; }
+  .photo-name { font-size: 11px; color: rgba(255,255,255,0.7); font-family: 'DM Mono', monospace; letter-spacing: 0.5px; }
+
+  /* ── SECTION DIVIDER (Photos / Videos) ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 48px 0 24px;
+  }
+  .section-divider-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--cream);
+    white-space: nowrap;
+  }
+  .section-divider-label span {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 1px;
+    margin-left: 10px;
+    font-weight: 400;
+  }
+  .section-divider-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(201,168,76,0.15);
+  }
+  .section-divider-icon {
+    font-size: 18px;
+    opacity: 0.5;
+  }
+
+  /* ── VIDEO GRID ── */
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 1200px) { .video-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px)  { .video-grid { grid-template-columns: 1fr; } }
+
+  .video-card {
+    position: relative;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .video-card:hover {
+    border-color: rgba(201,168,76,0.4);
+    transform: translateY(-2px);
+  }
+
+  /* Thumbnail / preview area */
+  .video-thumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .video-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  /* Gold play-button overlay */
+  .play-badge {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13,31,60,0.35);
+    transition: background 0.2s;
+  }
+  .video-card:hover .play-badge { background: rgba(13,31,60,0.15); }
+  .play-circle {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.85);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .video-card:hover .play-circle { transform: scale(1.08); background: var(--gold); }
+  .play-triangle {
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 10px 0 10px 18px;
+    border-color: transparent transparent transparent var(--navy);
+    margin-left: 3px;
+  }
+
+  /* Video card footer */
+  .video-info {
+    padding: 10px 14px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .video-filename {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: rgba(255,255,255,0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.5px;
+  }
+  .video-tag {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    padding: 2px 7px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── VIDEO MODAL ── */
+  .video-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,12,26,0.93);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+  .video-modal.open { display: flex; }
+
+  .video-modal-inner {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+  }
+  .video-modal video {
+    width: 100%;
+    border-radius: 4px;
+    outline: none;
+    display: block;
+    background: #000;
+    max-height: 70vh;
+  }
+  .video-modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 22px;
+    cursor: pointer;
+    transition: color 0.15s;
+    line-height: 1;
+  }
+  .video-modal-close:hover { color: var(--gold); }
+  .video-modal-meta {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .video-modal-filename {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+  }
+  .video-modal-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(201,168,76,0.6);
+    letter-spacing: 2px;
+  }
+  .video-modal-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    z-index: 2001;
+  }
+  .video-modal-nav:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+  .video-modal-prev { left: 20px; }
+  .video-modal-next { right: 20px; }
+
+  /* ── LIGHTBOX (photos) ── */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,12,26,0.95);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-close {
+    position: fixed;
+    top: 20px; right: 20px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: white;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    z-index: 1001;
+  }
+  .lightbox-close:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+  .lightbox-img-wrap { max-width: 90vw; max-height: 80vh; }
+  .lightbox-img-wrap img { max-width: 100%; max-height: 80vh; object-fit: contain; display: block; }
+  .lightbox-nav {
+    position: fixed;
+    top: 50%; transform: translateY(-50%);
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50%;
+    color: white; font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; z-index: 1001;
+  }
+  .lightbox-nav:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+  .lightbox-prev { left: 20px; }
+  .lightbox-next { right: 20px; }
+  .lightbox-info { margin-top: 16px; text-align: center; }
+  .lightbox-filename { font-family: 'DM Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+  .lightbox-counter { font-family: 'DM Mono', monospace; font-size: 11px; color: rgba(201,168,76,0.6); margin-top: 4px; letter-spacing: 2px; }
+
+  /* ── LOADING / ERROR STATES ── */
+  .state-msg {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 40vh; gap: 12px; text-align: center;
+  }
+  .state-msg .icon { font-size: 36px; opacity: 0.4; }
+  .state-msg p { font-size: 14px; color: rgba(255,255,255,0.35); }
+
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid rgba(201,168,76,0.15);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid rgba(201,168,76,0.15); padding: 16px 0; }
+    .main { padding: 24px 16px; }
+    .page-header { padding: 16px 20px; }
+    .gallery-title { font-size: 24px; }
+    .video-modal-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="page-header">
+  <div class="brand">
+    <div class="brand-name">Peter Luo</div>
+    <div class="brand-sub">Property Gallery · Pinnacle Listing System</div>
+  </div>
+  <a href="./" class="back-btn">← Back to Site</a>
+</div>
+
+<!-- ── LAYOUT ── -->
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Properties</div>
+    <ul class="property-list" id="property-list">
+      <!-- populated by JS -->
+    </ul>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main" id="main-content">
+    <div class="welcome">
+      <div class="welcome-icon">🏠</div>
+      <h2>Select a Property</h2>
+      <p>Choose a listing from the sidebar to view its photos &amp; videos</p>
+    </div>
+  </main>
+
+</div>
+
+<!-- ── LIGHTBOX (photos) ── -->
+<div class="lightbox" id="lightbox" onclick="handleLightboxClick(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="navLightbox(-1); event.stopPropagation()">‹</button>
+  <button class="lightbox-nav lightbox-next" onclick="navLightbox(1); event.stopPropagation()">›</button>
+  <div class="lightbox-img-wrap">
+    <img id="lightbox-img" src="" alt="">
+  </div>
+  <div class="lightbox-info">
+    <div class="lightbox-filename" id="lightbox-filename"></div>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+  </div>
+</div>
+
+<!-- ── VIDEO MODAL ── -->
+<div class="video-modal" id="video-modal" onclick="handleVideoModalClick(event)">
+  <button class="video-modal-nav video-modal-prev" onclick="navVideo(-1); event.stopPropagation()">‹</button>
+  <button class="video-modal-nav video-modal-next" onclick="navVideo(1); event.stopPropagation()">›</button>
+  <div class="video-modal-inner">
+    <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+    <video id="modal-video" controls playsinline preload="metadata"></video>
+  </div>
+  <div class="video-modal-meta">
+    <div class="video-modal-filename" id="video-modal-filename"></div>
+    <div class="video-modal-counter" id="video-modal-counter"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+//  CONFIGURATION
+// ─────────────────────────────────────────────────────────
+const GALLERY_ROOT = './gallery/';
+const MANIFEST_URL = './gallery/gallery.json';
+
+const IMG_EXTS   = ['jpg','jpeg','png','webp','gif','avif','heic'];
+const VIDEO_EXTS = ['mp4','mov','webm','m4v','ogg'];
+
+let currentPhotos  = [];
+let currentVideos  = [];
+let lightboxIdx    = 0;
+let videoModalIdx  = 0;
+let currentFolder  = '';
+
+// ─────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res  = await fetch(MANIFEST_URL);
+    if (!res.ok) throw new Error('manifest not found');
+    const data = await res.json();
+    buildSidebar(data.properties || []);
+  } catch(e) {
+    document.getElementById('property-list').innerHTML =
+      '<li style="padding:16px 24px;font-size:12px;color:rgba(255,255,255,0.3);">Could not load gallery/gallery.json</li>';
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  SIDEBAR
+// ─────────────────────────────────────────────────────────
+function buildSidebar(properties) {
+  const list = document.getElementById('property-list');
+  if (!properties.length) {
+    list.innerHTML = '<li style="padding:16px 24px;font-size:12px;color:rgba(255,255,255,0.3);">No properties listed.</li>';
+    return;
+  }
+  list.innerHTML = properties.map((p, i) => `
+    <li class="property-item">
+      <button class="property-btn" id="prop-btn-${i}" onclick="loadProperty('${p.folder}', '${escHtml(p.name)}', ${i})">
+        <div class="prop-icon">🏠</div>
+        <div class="prop-info">
+          <span class="prop-name">${escHtml(p.name)}</span>
+          <span class="prop-count" id="prop-count-${i}">—</span>
+        </div>
+      </button>
+    </li>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────────────────
+//  LOAD PROPERTY — fetch photos + videos indexes
+// ─────────────────────────────────────────────────────────
+async function loadProperty(folder, name, btnIdx) {
+  document.querySelectorAll('.property-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('prop-btn-' + btnIdx).classList.add('active');
+  currentFolder = folder;
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = '<div class="state-msg"><div class="spinner"></div><p>Loading media…</p></div>';
+
+  // Fetch photos and videos concurrently; videos are optional
+  const [photosResult, videosResult] = await Promise.allSettled([
+    fetch(GALLERY_ROOT + folder + '/photos_index.json').then(r => r.ok ? r.json() : Promise.reject()),
+    fetch(GALLERY_ROOT + folder + '/videos/videos_index.json').then(r => r.ok ? r.json() : Promise.reject())
+  ]);
+
+  const photos = photosResult.status === 'fulfilled'
+    ? (photosResult.value.photos || []).filter(f => IMG_EXTS.includes(f.split('.').pop().toLowerCase()))
+    : [];
+
+  const videos = videosResult.status === 'fulfilled'
+    ? (videosResult.value.videos || []).filter(f => VIDEO_EXTS.includes(f.split('.').pop().toLowerCase()))
+    : [];
+
+  if (!photos.length && !videos.length) {
+    main.innerHTML = `
+      <div class="state-msg">
+        <div class="icon">📂</div>
+        <p>No media found for <strong>${escHtml(name)}</strong>.<br>
+        Add <code>photos_index.json</code> and/or <code>videos/videos_index.json</code> to this folder.</p>
+      </div>`;
+    document.getElementById('prop-count-' + btnIdx).textContent = 'no media';
+    return;
+  }
+
+  const totalCount = photos.length + videos.length;
+  document.getElementById('prop-count-' + btnIdx).textContent =
+    photos.length + ' photo' + (photos.length !== 1 ? 's' : '') +
+    (videos.length ? ' · ' + videos.length + ' video' + (videos.length !== 1 ? 's' : '') : '');
+
+  currentPhotos = photos.map(f => GALLERY_ROOT + folder + '/' + f);
+  currentVideos = videos.map(f => GALLERY_ROOT + folder + '/videos/' + f);
+
+  renderGallery(name, folder, photos, videos);
+}
+
+// ─────────────────────────────────────────────────────────
+//  RENDER GALLERY
+// ─────────────────────────────────────────────────────────
+function renderGallery(name, folder, photos, videos) {
+  const main = document.getElementById('main-content');
+
+  // ── Header
+  let html = `
+    <div class="gallery-header">
+      <div class="gallery-title"><em>${escHtml(name)}</em></div>
+      <div class="gallery-meta">
+        ${photos.length} photo${photos.length !== 1 ? 's' : ''}
+        ${videos.length ? ' &nbsp;·&nbsp; ' + videos.length + ' video' + (videos.length !== 1 ? 's' : '') : ''}
+      </div>
+    </div>`;
+
+  // ── Photos section
+  if (photos.length) {
+    const photoItems = photos.map((f, i) => {
+      const src  = GALLERY_ROOT + folder + '/' + f;
+      const label = f.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      return `
+        <div class="photo-item" onclick="openLightbox(${i})">
+          <img src="${src}" alt="${escHtml(label)}" loading="lazy">
+          <div class="photo-overlay">
+            <div class="photo-name">${escHtml(f)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    html += `
+      <div class="section-divider">
+        <span class="section-divider-icon">🖼️</span>
+        <div class="section-divider-label">Photos <span>${photos.length} image${photos.length !== 1 ? 's' : ''}</span></div>
+        <div class="section-divider-line"></div>
+      </div>
+      <div class="photo-grid">${photoItems}</div>`;
+  }
+
+  // ── Videos section
+  if (videos.length) {
+    const videoItems = videos.map((f, i) => {
+      const src   = GALLERY_ROOT + folder + '/videos/' + f;
+      const label = f.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      const ext   = f.split('.').pop().toUpperCase();
+      return `
+        <div class="video-card" onclick="openVideoModal(${i})">
+          <div class="video-thumb">
+            <video src="${src}" preload="metadata" muted playsinline></video>
+            <div class="play-badge">
+              <div class="play-circle"><div class="play-triangle"></div></div>
+            </div>
+          </div>
+          <div class="video-info">
+            <div class="video-filename" title="${escHtml(f)}">${escHtml(label || f)}</div>
+            <div class="video-tag">${ext}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    html += `
+      <div class="section-divider">
+        <span class="section-divider-icon">🎬</span>
+        <div class="section-divider-label">Videos <span>${videos.length} clip${videos.length !== 1 ? 's' : ''}</span></div>
+        <div class="section-divider-line"></div>
+      </div>
+      <div class="video-grid">${videoItems}</div>`;
+  }
+
+  main.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────────────────
+//  PHOTO LIGHTBOX
+// ─────────────────────────────────────────────────────────
+function openLightbox(idx) {
+  lightboxIdx = idx;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function navLightbox(dir) {
+  lightboxIdx = (lightboxIdx + dir + currentPhotos.length) % currentPhotos.length;
+  updateLightbox();
+}
+function updateLightbox() {
+  const src = currentPhotos[lightboxIdx];
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-filename').textContent = src.split('/').pop();
+  document.getElementById('lightbox-counter').textContent = (lightboxIdx + 1) + ' / ' + currentPhotos.length;
+}
+function handleLightboxClick(e) {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+}
+
+// ─────────────────────────────────────────────────────────
+//  VIDEO MODAL
+// ─────────────────────────────────────────────────────────
+function openVideoModal(idx) {
+  videoModalIdx = idx;
+  updateVideoModal();
+  document.getElementById('video-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeVideoModal() {
+  const v = document.getElementById('modal-video');
+  v.pause();
+  v.src = '';
+  document.getElementById('video-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function navVideo(dir) {
+  const v = document.getElementById('modal-video');
+  v.pause();
+  videoModalIdx = (videoModalIdx + dir + currentVideos.length) % currentVideos.length;
+  updateVideoModal();
+}
+function updateVideoModal() {
+  const src = currentVideos[videoModalIdx];
+  const v = document.getElementById('modal-video');
+  v.src = src;
+  v.load();
+  document.getElementById('video-modal-filename').textContent = src.split('/').pop();
+  document.getElementById('video-modal-counter').textContent = (videoModalIdx + 1) + ' / ' + currentVideos.length;
+}
+function handleVideoModalClick(e) {
+  if (e.target === document.getElementById('video-modal')) closeVideoModal();
+}
+
+// ─────────────────────────────────────────────────────────
+//  KEYBOARD NAVIGATION
+// ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'ArrowRight') navLightbox(1);
+    if (e.key === 'ArrowLeft')  navLightbox(-1);
+    if (e.key === 'Escape')     closeLightbox();
+  } else if (document.getElementById('video-modal').classList.contains('open')) {
+    if (e.key === 'ArrowRight') navVideo(1);
+    if (e.key === 'ArrowLeft')  navVideo(-1);
+    if (e.key === 'Escape')     closeVideoModal();
+  }
+});
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+</body>
+</html>

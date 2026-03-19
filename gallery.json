@@ -1,0 +1,7 @@
+{
+  "properties": [
+    { "name": "Property A",  "folder": "PropertyA" },
+    { "name": "Property B",  "folder": "PropertyB" },
+    { "name": "Property C",  "folder": "PropertyC" }
+  ]
+}
