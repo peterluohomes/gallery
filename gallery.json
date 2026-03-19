@@ -2,6 +2,13 @@
   "properties": [
     { "name": "Property A",  "folder": "PropertyA" },
     { "name": "Property B",  "folder": "PropertyB" },
-    { "name": "Property C",  "folder": "PropertyC" }
+    { "name": "Property C",  "folder": "PropertyC" },
+    { "name": "Property C",  "folder": "PropertyD" },
+    { "name": "Property C",  "folder": "PropertyE" },
+    { "name": "Property C",  "folder": "PropertyF" },
+    { "name": "Property C",  "folder": "PropertyG" },
+    { "name": "Property C",  "folder": "PropertyH" },
+    { "name": "Property C",  "folder": "PropertyI" },
+    { "name": "Property C",  "folder": "PropertyJ" }
   ]
 }
