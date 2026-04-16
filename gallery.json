@@ -9,6 +9,10 @@
     { "name": "Property G",  "folder": "PropertyG" },
     { "name": "Property H",  "folder": "PropertyH" },
     { "name": "Property I",  "folder": "PropertyI" },
-    { "name": "Property J",  "folder": "PropertyJ" }
+    { "name": "Property J",  "folder": "PropertyJ" },
+    { "name": "Property K",  "folder": "PropertyJ" },
+    { "name": "Property L",  "folder": "PropertyJ" },
+    { "name": "Property M",  "folder": "PropertyJ" },
+    { "name": "Property N",  "folder": "PropertyJ" }
   ]
 }
